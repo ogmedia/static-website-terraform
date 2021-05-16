@@ -62,8 +62,12 @@ resource "aws_route53_record" "cert_validation" {
 # This isn't a real "thing" in AWS. This is just here to make sure that terraform
 # waits for validation to complete.
 resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn         = "${aws_acm_certificate.cert.arn}"
-  validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
+  certificate_arn         = aws_acm_certificate.cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation: record.fqdn]
+
+  # deprecated for < v13
+  # certificate_arn         = "${aws_acm_certificate.cert.arn}"
+  # validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
 }
 
 # This creates a CDN in CloudFront that uses our S3 bucket as an origin.
