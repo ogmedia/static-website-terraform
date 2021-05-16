@@ -48,7 +48,7 @@ resource "aws_route53_record" "cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.zone.id
+  zone_id         = "${data.aws_route53_zone.zone.id}"
 
 
   # deprecated < v13
