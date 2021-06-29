@@ -1,3 +1,9 @@
+provider "aws" {
+  profile = "default"
+  region  = "us-east-1"
+  alias   = "useast1"
+}
+
 data "aws_iam_policy_document" "bucket_policy" {
   statement {
     actions   = ["s3:GetObject"]
@@ -25,6 +31,7 @@ resource "aws_s3_bucket" "website" {
 # The following resources generate an SSL certificate and
 # validate it.
 resource "aws_acm_certificate" "cert" {
+  provider          = aws.useast1
   domain_name       = "${var.domain_name}"
   validation_method = "DNS"
 }
@@ -43,7 +50,7 @@ resource "aws_route53_record" "cert_validation" {
       type   = dvo.resource_record_type
     }
   }
-  allow_overwrite = true
+  allow_overwrite = false
   name            = each.value.name
   records         = [each.value.record]
   ttl             = 60
@@ -62,9 +69,9 @@ resource "aws_route53_record" "cert_validation" {
 # This isn't a real "thing" in AWS. This is just here to make sure that terraform
 # waits for validation to complete.
 resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn         = aws_acm_certificate.cert.arn
+  provider                = aws.useast1
+  certificate_arn         = "${aws_acm_certificate.cert.arn}"
   validation_record_fqdns = [for record in aws_route53_record.cert_validation: record.fqdn]
-
   # deprecated for < v13
   # certificate_arn         = "${aws_acm_certificate.cert.arn}"
   # validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
