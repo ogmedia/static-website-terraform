@@ -25,14 +25,13 @@ resource "aws_s3_bucket" "website" {
 # The following resources generate an SSL certificate and
 # validate it.
 resource "aws_acm_certificate" "cert" {
-  domain      = "${var.domain_name}"
-  types       = ["AMAZON_ISSUED"]
-  most_recent = true
+  domain_name       = "${var.domain_name}"
+  validation_method = "DNS"
 }
 
 # Assumes that we already have the zone in route53.
 data "aws_route53_zone" "zone" {
-  name         = "${var.domain_name}"
+  name         = "${var.domain_name}."
   private_zone = false
 }
 
@@ -78,12 +77,12 @@ resource "aws_cloudfront_distribution" "cdn" {
     domain_name = "${aws_s3_bucket.website.website_endpoint}"
     origin_id   = "${var.site_bucket_name}"
 
-    # custom_origin_config {
-    #   origin_protocol_policy = "http-only"
-    #   http_port              = 80
-    #   https_port             = 443
-    #   origin_ssl_protocols   = ["TLSv1.2", "TLSv1.1", "TLSv1"]
-    # }
+    custom_origin_config {
+      origin_protocol_policy = "http-only"
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1.2", "TLSv1.1", "TLSv1"]
+    }
   }
 
   enabled             = true
